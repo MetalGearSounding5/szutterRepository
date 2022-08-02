@@ -6,24 +6,24 @@ import copy from 'rollup-plugin-copy';
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
-	input: 'src/main.js',
-	output: {
-		file: 'build/bundle.js',
-		sourcemap: true
-	},
-	plugins: [
-		serve({
-			open: true,
-			contentBase: 'build'
-		}),
-    livereload({
-			watch: 'build'
-		}),
-		copy({
-      targets: [
-        { src: 'src/index.html', dest: 'build' },
-      ]
+  input: 'src/main.js',
+  output: {
+    file: 'build/bundle.js',
+    sourcemap: true,
+  },
+  plugins: [
+    serve({
+      open: true,
+      contentBase: 'build',
     }),
-		production && terser() // minify, but only in production
-	]
+    livereload({
+      watch: 'build',
+    }),
+    copy({
+      targets: [
+        {src: 'src/index.html', dest: 'build'},
+      ],
+    }),
+    production && terser(), // minify, but only in production
+  ],
 };

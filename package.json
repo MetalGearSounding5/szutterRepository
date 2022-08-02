@@ -1,0 +1,17 @@
+{
+  "name": "szutter",
+  "scripts": {
+    "build": "rollup -c",
+    "start": "rollup -c -w"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.18.10",
+    "@babel/core": "^7.18.10",
+    "@rollup/plugin-babel": "^5.3.1",
+    "rollup": "^2.77.2",
+    "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-serve": "^2.0.0",
+    "rollup-plugin-terser": "^7.0.2"
+  }
+}

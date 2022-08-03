@@ -29,5 +29,5 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - run: rm -Rf /var/www/html/*
-    - run: cp -R ./build/* /var/www/html/
+    - run: rm -Rf /var/www/metalgearsounding5.dev/*
+    - run: cp -R ./build/* /var/www/metalgearsounding5.dev/

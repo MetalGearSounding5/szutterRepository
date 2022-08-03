@@ -12,11 +12,11 @@ export default {
     sourcemap: true,
   },
   plugins: [
-    serve({
+    !production && serve({
       open: true,
       contentBase: 'build',
     }),
-    livereload({
+    !production && livereload({
       watch: 'build',
     }),
     copy({

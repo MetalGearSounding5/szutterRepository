@@ -1,18 +1,31 @@
-import { Point } from './main';
+import { Point } from '../main';
 
 export class Entity {
-  public position: Point = {x: 0, y: 0};
+  private hits = 0;
+  private slowness = 5;
+  private direction = 1;
 
-  constructor(other: Entity) {
-    Object.assign(this, other);
+  constructor(public position: Point) { }
+
+  public update(now: DOMHighResTimeStamp, diff: DOMHighResTimeStamp): void {
+    if (this.position.x >= window.innerWidth || this.position.x <= 0) {
+      this.direction *= -1;
+      this.hits++;
+    }
+
+    const accelerationX = (this.direction * diff) / this.slowness;
+    this.position.x += accelerationX;
   }
 
-
   public draw(context: CanvasRenderingContext2D): void {
+    context.fillStyle = 'red';
+
     context.strokeRect(this.position.x - 10, this.position.y - 10, 20, 20);
     context.fillRect(this.position.x - 10, this.position.y - 10, 20, 20);
-  
-    context.fillStyle = 'green';
+
+    context.fillStyle = 'black';
+    context.font = 'bold 16px Arial';
+    context.fillText(`Hits: ${this.hits}`, this.position.x + 15, this.position.y + 30);
   }
 }
 

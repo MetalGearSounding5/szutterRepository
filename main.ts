@@ -11,8 +11,6 @@ if (import.meta.hot) {
   let currentHotEngine = engine;
   import.meta.hot.accept('./src/engine', module => {
     cancelAnimationFrame(currentHotEngine.requestAnimationFrameId!);
-    currentHotEngine = Object.assign(new module!.Engine(), currentHotEngine);
-
-    console.log('Engine module changed', module);
+    currentHotEngine = Object.assign(new module!.Engine(context), currentHotEngine);
   });
 }

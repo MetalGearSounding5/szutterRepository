@@ -43,7 +43,10 @@ export class Engine {
 
     import.meta.hot.accept('./entity', module => {
       for (const [entityId, entity] of this.entities) {
-        this.entities.set(entityId, Object.assign(new module!.Entity(), entity));
+        // This way we can filter only target entities
+        // if (!(entity instanceof Entity)) continue;
+
+        this.entities.set(entityId, Object.assign(new module!.Entity(entity.position), entity));
       }
     })
   }

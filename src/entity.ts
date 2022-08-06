@@ -8,8 +8,11 @@ export class Entity {
   constructor(public position: Point) { }
 
   public update(now: DOMHighResTimeStamp, diff: DOMHighResTimeStamp): void {
-    if (this.position.x >= window.innerWidth || this.position.x <= 0) {
-      this.direction *= -1;
+    if (this.position.x >= window.innerWidth) {
+      this.direction = -1;
+      this.hits++;
+    } else if (this.position.x <= 0) {
+      this.direction = 1;
       this.hits++;
     }
 
@@ -18,7 +21,7 @@ export class Entity {
   }
 
   public draw(context: CanvasRenderingContext2D): void {
-    context.fillStyle = 'red';
+    context.fillStyle = 'green';
 
     context.strokeRect(this.position.x - 10, this.position.y - 10, 20, 20);
     context.fillRect(this.position.x - 10, this.position.y - 10, 20, 20);
@@ -28,4 +31,3 @@ export class Entity {
     context.fillText(`Hits: ${this.hits}`, this.position.x + 15, this.position.y + 30);
   }
 }
-

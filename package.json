@@ -1,17 +1,18 @@
 {
   "name": "szutter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "build": "rollup -c",
-    "start": "rollup -c -w"
+    "start": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "@babel/cli": "^7.18.10",
-    "@babel/core": "^7.18.10",
-    "@rollup/plugin-babel": "^5.3.1",
-    "rollup": "^2.77.2",
-    "rollup-plugin-copy": "^3.4.0",
-    "rollup-plugin-livereload": "^2.0.5",
-    "rollup-plugin-serve": "^2.0.0",
-    "rollup-plugin-terser": "^7.0.2"
+    "typescript": "^4.6.4",
+    "vite": "^3.0.0"
+  },
+  "dependencies": {
+    "sass": "^1.54.3"
   }
 }

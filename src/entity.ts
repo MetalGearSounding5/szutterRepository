@@ -21,13 +21,45 @@ export class Entity {
   }
 
   public draw(context: CanvasRenderingContext2D): void {
-    context.fillStyle = 'green';
+    const height = 200;
+    const width = 130;
+    const color = '#FF0000';
 
-    context.strokeRect(this.position.x - 10, this.position.y - 10, 20, 20);
-    context.fillRect(this.position.x - 10, this.position.y - 10, 20, 20);
+    const triangle = (
+      height: number,
+      width: number,
+      position: Point
+    ): void => {
+      context.beginPath();
+      context.moveTo(position.x, position.y - ( height / 2 ) );
+      context.lineTo(position.x - ( width / 2 ),position.y + ( height / 2 ) );
+      context.lineTo(position.x + ( width / 2 ), position.y + ( height / 2 ) );
+      context.closePath();
 
-    context.fillStyle = 'black';
-    context.font = 'bold 16px Arial';
-    context.fillText(`Hits: ${this.hits}`, this.position.x + 15, this.position.y + 30);
+      context.fill();
+      context.stroke();
+    }
+
+    //draws blur behind the ship
+    context.lineWidth = 0;
+    context.filter = "blur(100px)";
+    triangle(height * 1.5, width * 2, this.position);
+
+    //draws the ship
+    context.lineWidth = 5;
+    context.filter = "none";
+    context.fillStyle = `rgba(255, 90, 0, 0.31)`;
+    context.strokeStyle = `rgba(255, 90, 0, 0.93)`;
+    triangle(height * -0.2, width * 0.5, {
+      x: this.position.x ,
+      y: this.position.y + height * 0.6
+    } );
+
+    //draws the acceleration triangle
+    context.fillStyle = `${color}50`;
+    context.strokeStyle = color;
+    context.lineWidth = 5;
+    context.filter = "none";
+    triangle(height, width, this.position);
   }
 }

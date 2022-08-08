@@ -5,7 +5,7 @@ import { TimeStamp } from '../main';
 export class Engine {
   protected readonly entities = new Map<string, Entity>();
   public requestAnimationFrameId?: number;
-  private timer = new TimeStampMonitor();
+  private monitor = new TimeStampMonitor();
 
   constructor(private readonly context: CanvasRenderingContext2D) {
     this.entities.set('square-0', new Entity({x: context.canvas.width / 2, y: context.canvas.height / 2}));
@@ -14,7 +14,7 @@ export class Engine {
   }
 
   private update(now: TimeStamp, diff: TimeStamp): void {
-    this.timer.update(now, diff);
+    this.monitor.update(now, diff);
     for (const entity of this.entities.values()) {
       entity.update(now, diff);
     }
@@ -27,7 +27,7 @@ export class Engine {
       entity.draw(this.context);
     }
 
-    this.timer.draw(this.context);
+    this.monitor.draw(this.context);
   }
 
   private loop(now: TimeStamp = performance.now(), diff: TimeStamp = 0): void {
@@ -50,7 +50,7 @@ export class Engine {
     })
 
     import.meta.hot.accept('./time-stamp-monitor', module => {
-      this.timer = Object.assign(new module!.TimeStampMonitor(), this.timer);
+      this.monitor = Object.assign(new module!.TimeStampMonitor(), this.monitor);
     })
   }
 }

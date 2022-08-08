@@ -18,20 +18,21 @@ export class TimeStampMonitor {
     if (previousSecond !== currentSecond && currentSecond % this.period === 0) {
       console.debug(`Time: ${now}, Average Frame Time: ${this.averageFrameTime.toFixed(3)}`);
 
-      const dataNotToRemove = Array.from(this.buffer.entries()).slice(-this.desiredFramesPerSecond);
+      const dataNotToRemove = Array.from(this.buffer.entries()).slice(-window.desiredFramesPerSecond);
       this.buffer.clear();
       dataNotToRemove.forEach(([k, v]) => this.buffer.set(k, v));
     }
   }
 
   public draw(context: CanvasRenderingContext2D): void {
-    const frameTimes = Array.from(this.buffer.values()).slice(-this.desiredFramesPerSecond);
+    const frameTimes = Array.from(this.buffer.values()).slice(-window.desiredFramesPerSecond);
 
     for (let i = 0; i < frameTimes.length; i++) {
-      const frameTime = frameTimes[i];
+      const fps = 1000 / frameTimes[i];
 
-      const amplitude = 1 - (frameTime - this.desiredFramesPerSecond) / this.desiredFramesPerSecond;
-      context.fillStyle = amplitude > 0.8 ? 'lime' : amplitude > 0 ? 'orange' : 'red';
+      const amplitude = 1 - (window.desiredFramesPerSecond - fps) / window.desiredFramesPerSecond;
+      console.log(amplitude);
+      context.fillStyle = amplitude > 0.9 ? 'lime' : amplitude > 0.5 ? 'orange' : 'red';
       context.fillRect(i * 5 + 5, 40, 3, - amplitude * 20);
     }
 
@@ -40,11 +41,7 @@ export class TimeStampMonitor {
 
     context.fillStyle = 'white';
     context.font = "bold 12px Arial";
-    context.fillText(`FPS: ${(1000 / frameTimes.at(-1)!).toFixed(2)}`, 10, 55);
-    context.fillText(`AVG FPS: ${this.averageFrameTime.toFixed(2)}`, 10, 70);
-  }
-
-  private get desiredFramesPerSecond(): TimeStamp {
-    return 70;//1000 / this.averageFrameTime;
+    context.fillText(`FPS: ${(1000 / frameTimes.at(-1)!).toFixed(2)}`, 5, 55);
+    context.fillText(`AVG FPS: ${this.averageFrameTime.toFixed(2)}`, 5, 70);
   }
 }

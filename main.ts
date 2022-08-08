@@ -1,10 +1,18 @@
 /// <reference types="vite/client" />
 import { Engine } from './src/engine';
 import { prepareContext } from './src/prepare-context';
+import { calculateDesiredFramesPerSecond } from './src/get-refresh-rate';
 
 export type Point = { x: number, y: number };
 export type TimeStamp = DOMHighResTimeStamp;
 
+declare global {
+  interface Window {
+    desiredFramesPerSecond: number;
+  }
+}
+
+window.desiredFramesPerSecond = await calculateDesiredFramesPerSecond();
 const context = prepareContext();
 const engine = new Engine(context);
 

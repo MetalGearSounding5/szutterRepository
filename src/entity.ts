@@ -16,11 +16,8 @@ export class Entity {
       this.hits++;
     }
 
-
-    for (let i = 0; i < Math.random() * 1_000_000_000_000_00; i++) {
-
-    }
-
+    // artificial cpu stress
+    for (let i = 0; i < Math.random() * 1_000_000_000; i++) {}
 
     const accelerationX = (this.direction * diff) / this.slowness;
     this.position.x += accelerationX;

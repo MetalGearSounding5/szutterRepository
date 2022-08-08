@@ -9,8 +9,14 @@ export type TimeStamp = DOMHighResTimeStamp;
 declare global {
   interface Window {
     desiredFramesPerSecond: number;
+    debugMode: boolean
   }
 }
+
+window.addEventListener('keydown', ({code}) => {
+    if (code !== 'F9') return;
+    window.debugMode = !window.debugMode;
+});
 
 window.desiredFramesPerSecond = await calculateDesiredFramesPerSecond();
 const context = prepareContext();

@@ -11,7 +11,7 @@ export const calculateDesiredFramesPerSecond = async(): Promise<number> => {
     totalFrameTime += currentFrameTime;
   }
 
-  let averageFrameTime = totalFrameTime / frameTimes.length;
+  const averageFrameTime = totalFrameTime / frameTimes.length;
   const filteredFrameTimes = frameTimes
     .filter(frameTime => Math.abs(averageFrameTime - frameTime) < averageFrameTime / 2);
 
@@ -19,23 +19,18 @@ export const calculateDesiredFramesPerSecond = async(): Promise<number> => {
   for (const frameTime of filteredFrameTimes) {
     totalFrameTime += frameTime;
   }
-  averageFrameTime = totalFrameTime / filteredFrameTimes.length;
 
-  const fps = 1000 / averageFrameTime;
+  const averageFilteredFrameTime = totalFrameTime / filteredFrameTimes.length;
+
+  const framesPerSecond = 1000 / averageFilteredFrameTime;
   const refreshRates = [30, 60, 75, 90, 120, 144, 240];
 
   return refreshRates
-    .reduce((closest, current) => {
-      if (Math.abs(closest - fps) > Math.abs(current - fps)) {
-        return current;
-      } else {
-        return closest;
-      }
-    }, 0);
+    .reduce((closest, current) => Math.abs(closest - framesPerSecond) > Math.abs(current - framesPerSecond) ? current : closest, 0);
 }
 
 const getFrameTime = async(): Promise<TimeStamp> => {
-  const then = performance.now();
+  const then: TimeStamp = performance.now();
   const now: TimeStamp = await new Promise(r => requestAnimationFrame(r));
 
   return now - then;

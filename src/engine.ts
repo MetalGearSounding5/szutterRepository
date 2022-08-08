@@ -14,7 +14,7 @@ export class Engine {
   }
 
   private update(now: TimeStamp, diff: TimeStamp): void {
-    this.monitor.update(now, diff);
+    window.debugMode && this.monitor.update(now, diff);
     for (const entity of this.entities.values()) {
       entity.update(now, diff);
     }
@@ -27,7 +27,7 @@ export class Engine {
       entity.draw(this.context);
     }
 
-    this.monitor.draw(this.context);
+    window.debugMode && this.monitor.draw(this.context);
   }
 
   private loop(now: TimeStamp = performance.now(), diff: TimeStamp = 0): void {

@@ -1,4 +1,4 @@
-import { Point } from '../main';
+import { Point, TimeStamp } from '../main';
 
 export class Entity {
   private hits = 0;
@@ -7,7 +7,7 @@ export class Entity {
 
   constructor(public position: Point) { }
 
-  public update(now: DOMHighResTimeStamp, diff: DOMHighResTimeStamp): void {
+  public update(now: TimeStamp, diff: TimeStamp): void {
     if (this.position.x >= window.innerWidth) {
       this.direction = -1;
       this.hits++;
@@ -16,6 +16,9 @@ export class Entity {
       this.hits++;
     }
 
+    // artificial cpu stress
+    for (let i = 0; i < Math.random() * 1_000_000_000; i++) {}
+
     const accelerationX = (this.direction * diff) / this.slowness;
     this.position.x += accelerationX;
   }
@@ -23,7 +26,7 @@ export class Entity {
   public draw(context: CanvasRenderingContext2D): void {
     const height = 200;
     const width = 130;
-    const color = '#FF0000';
+    const color = '#ff0000';
 
     const triangle = (
       height: number,
@@ -43,6 +46,7 @@ export class Entity {
     //draws blur behind the ship
     context.lineWidth = 0;
     context.filter = "blur(100px)";
+    context.fillStyle = `${color}50`;
     triangle(height * 1.5, width * 2, this.position);
 
     //draws the ship

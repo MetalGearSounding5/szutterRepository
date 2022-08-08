@@ -1,15 +1,27 @@
 import { TimeStamp } from '../main';
 
 export const calculateDesiredFramesPerSecond = async(): Promise<number> => {
+  const frameTimes: number[] = [];
   let totalFrameTime = 0;
 
-  let frameCount = 0;
   while (totalFrameTime < 500) {
-    totalFrameTime += await getFrameTime();
-    frameCount++;
+    const currentFrameTime = await getFrameTime();
+
+    frameTimes.push(currentFrameTime);
+    totalFrameTime += currentFrameTime;
   }
 
-  const fps = 1000 / (totalFrameTime / frameCount);
+  let averageFrameTime = totalFrameTime / frameTimes.length;
+  const filteredFrameTimes = frameTimes
+    .filter(frameTime => Math.abs(averageFrameTime - frameTime) < averageFrameTime / 2);
+
+  totalFrameTime = 0;
+  for (const frameTime of filteredFrameTimes) {
+    totalFrameTime += frameTime;
+  }
+  averageFrameTime = totalFrameTime / filteredFrameTimes.length;
+
+  const fps = 1000 / averageFrameTime;
   const refreshRates = [30, 60, 75, 90, 120, 144, 240];
 
   return refreshRates

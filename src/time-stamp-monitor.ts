@@ -31,7 +31,7 @@ export class TimeStampMonitor {
       const fps = 1000 / frameTimes[i];
 
       const amplitude = 1 - (window.desiredFramesPerSecond - fps) / window.desiredFramesPerSecond;
-      console.log(amplitude);
+
       context.fillStyle = amplitude > 0.9 ? 'lime' : amplitude > 0.5 ? 'orange' : 'red';
       context.fillRect(i * 5 + 5, 40, 3, - amplitude * 20);
     }

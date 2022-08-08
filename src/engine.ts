@@ -1,16 +1,20 @@
 import { Entity } from './entity';
+import { TimeStampMonitor } from './time-stamp-monitor';
+import { TimeStamp } from '../main';
 
 export class Engine {
   protected readonly entities = new Map<string, Entity>();
   public requestAnimationFrameId?: number;
+  private timer = new TimeStampMonitor();
 
   constructor(private readonly context: CanvasRenderingContext2D) {
-    this.entities.set('square-0', new Entity({ x: context.canvas.width / 2, y: context.canvas.height / 2 }));
+    this.entities.set('square-0', new Entity({x: context.canvas.width / 2, y: context.canvas.height / 2}));
     this.handleHmr();
     this.loop();
   }
 
-  private update(now: DOMHighResTimeStamp, diff: DOMHighResTimeStamp): void {
+  private update(now: TimeStamp, diff: TimeStamp): void {
+    this.timer.update(now, diff);
     for (const entity of this.entities.values()) {
       entity.update(now, diff);
     }
@@ -22,16 +26,11 @@ export class Engine {
     for (const entity of this.entities.values()) {
       entity.draw(this.context);
     }
+
+    this.timer.draw(this.context);
   }
 
-  private loop(now: DOMHighResTimeStamp = performance.now(), diff: DOMHighResTimeStamp = 0): void {
-    const previousSecond = Math.trunc((now - diff) / 1000);
-    const currentSecond = Math.trunc(now / 1000);
-
-    if (previousSecond !== currentSecond && currentSecond % 5 === 0) {
-      console.debug(`Time: ${now}, Frame Time: ${diff.toFixed(3)}, Entities Count: ${this.entities.size}.`);
-    }
-
+  private loop(now: TimeStamp = performance.now(), diff: TimeStamp = 0): void {
     this.update(now, diff);
     this.draw();
 
@@ -48,6 +47,10 @@ export class Engine {
 
         this.entities.set(entityId, Object.assign(new module!.Entity(entity.position), entity));
       }
+    })
+
+    import.meta.hot.accept('./time-stamp-monitor', module => {
+      this.timer = Object.assign(new module!.TimeStampMonitor(), this.timer);
     })
   }
 }

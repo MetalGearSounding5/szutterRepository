@@ -3,6 +3,7 @@ import { Engine } from './src/engine';
 import { prepareContext } from './src/prepare-context';
 
 export type Point = { x: number, y: number };
+export type TimeStamp = DOMHighResTimeStamp;
 
 const context = prepareContext();
 const engine = new Engine(context);

@@ -18,16 +18,14 @@ window.addEventListener('keydown', ({code}) => {
     window.debugMode = !window.debugMode;
 });
 
-(async() => {
-  window.desiredFramesPerSecond = await calculateDesiredFramesPerSecond();
-  const context = prepareContext();
-  const engine = new Engine(context);
+window.desiredFramesPerSecond = await calculateDesiredFramesPerSecond();
+const context = prepareContext();
+const engine = new Engine(context);
 
-  if (import.meta.hot) {
-    let currentHotEngine = engine;
-    import.meta.hot.accept('./src/engine', module => {
-      cancelAnimationFrame(currentHotEngine.requestAnimationFrameId!);
-      currentHotEngine = Object.assign(new module!.Engine(context), currentHotEngine);
-    });
-  }
-})();
+if (import.meta.hot) {
+  let currentHotEngine = engine;
+  import.meta.hot.accept('./src/engine', module => {
+    cancelAnimationFrame(currentHotEngine.requestAnimationFrameId!);
+    currentHotEngine = Object.assign(new module!.Engine(context), currentHotEngine);
+  });
+}

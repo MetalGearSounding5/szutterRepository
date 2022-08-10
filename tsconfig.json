@@ -22,7 +22,8 @@
     "newLine": "LF",
     "removeComments": true,
     "forceConsistentCasingInFileNames": true,
-    "allowJs": true
+    "allowJs": true,
+    "types": ["vite/client", "@webgpu/types"]
   },
   "include": ["src"]
 }

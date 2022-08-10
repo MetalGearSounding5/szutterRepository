@@ -2,6 +2,7 @@
 import { Engine } from './src/engine';
 import { prepareContext } from './src/prepare-context';
 import { calculateDesiredFramesPerSecond } from './src/get-refresh-rate';
+import { webgpuTest } from './src/webgpu-test';
 
 export type Point = { x: number, y: number };
 export type TimeStamp = DOMHighResTimeStamp;
@@ -29,3 +30,5 @@ if (import.meta.hot) {
     currentHotEngine = Object.assign(new module!.Engine(context), currentHotEngine);
   });
 }
+
+await webgpuTest();

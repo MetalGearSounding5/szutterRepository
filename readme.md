@@ -25,3 +25,7 @@ This will automatically open browser at http://localhost:10001 and will refresh 
 
 Run `pnpm run build` or use bundled IDEA project configuration called `Build`.
 This will build minified version of project and output to the `build` directory, that is placed alongside `src`.
+
+#### webGPU
+
+To use webGPU use either [ChromeDev](https://www.google.com/chrome/dev/) or [Chrome Canary](https://www.google.com/chrome/canary/). Go to `chrome://flags/#enable-unsafe-webgpu` and enable this flag. When running ChromeDev on linux make sure to run it with additional flag `--enable-features=Vulkan`.

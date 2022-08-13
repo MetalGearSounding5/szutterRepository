@@ -1,14 +1,23 @@
-import { Entity } from './entity';
 import { TimeStampMonitor } from './time-stamp-monitor';
 import { TimeStamp } from '../main';
+import { Body } from './body';
+
+export const GRAVITATIONAL_FORCE = 0.000001;
+export const SOFTENING_FACTOR = 12;
 
 export class Engine {
-  protected readonly entities = new Map<string, Entity>();
+  protected readonly entities = new Map<string, Body>();
   public requestAnimationFrameId?: number;
   private monitor = new TimeStampMonitor();
 
   constructor(private readonly context: CanvasRenderingContext2D) {
-    this.entities.set('square-0', new Entity({x: context.canvas.width / 2, y: context.canvas.height / 2}));
+    for (let i = 0; i < 500; i++) {
+      const x = context.canvas.width * Math.random();
+      const y = context.canvas.height * Math.random();
+      const color = '#' + Math.floor((Math.random()*0xffffff)).toString(16);
+
+      this.entities.set(`body-${i}`, new Body({x: x, y: y}, Math.random() * 10, color));
+    }
     this.handleHmr();
     this.loop();
   }
@@ -16,7 +25,7 @@ export class Engine {
   private update(now: TimeStamp, diff: TimeStamp): void {
     window.debugMode && this.monitor.update(now, diff);
     for (const entity of this.entities.values()) {
-      entity.update(now, diff);
+      entity.update(now, diff, this.entities.values(), {x: this.context.canvas.width, y: this.context.canvas.height});
     }
   }
 

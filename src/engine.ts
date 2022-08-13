@@ -1,14 +1,14 @@
-import { Entity } from './entity';
+import { EnemyShip } from './enemy-ship';
 import { TimeStampMonitor } from './time-stamp-monitor';
 import { TimeStamp } from '../main';
 
 export class Engine {
-  protected readonly entities = new Map<string, Entity>();
+  protected readonly entities = new Map<string, EnemyShip>();
   public requestAnimationFrameId?: number;
   private monitor = new TimeStampMonitor();
 
   constructor(private readonly context: CanvasRenderingContext2D) {
-    this.entities.set('square-0', new Entity({x: context.canvas.width / 2, y: context.canvas.height / 2}));
+    this.entities.set('square-0', new EnemyShip({x: context.canvas.width / 2, y: context.canvas.height / 2}));
     this.handleHmr();
     this.loop();
   }

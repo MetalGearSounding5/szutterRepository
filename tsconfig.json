@@ -23,7 +23,14 @@
     "removeComments": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "types": ["vite/client", "@webgpu/types"]
+    "types": ["vite/client", "@webgpu/types"],
+    "plugins": [
+      {
+        "transform": "ts-transformer-properties-rename",
+        "entrySourceFiles": ["./main.ts"],
+        "internalPrefix": ""
+      }
+    ]
   },
   "include": ["src"]
 }

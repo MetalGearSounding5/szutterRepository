@@ -26,6 +26,26 @@ export class Asteroid extends Entity {
 
     context.strokeStyle = 'yellow';
     context.stroke();
+
+    if (!window.debugMode) return;
+
+    context.strokeStyle = 'rebeccapurple';
+    context.fillStyle = 'rebeccapurple';
+
+    context.beginPath();
+    context.arc(this.position.x, this.position.y, 2, 0, 2 * Math.PI);
+    context.closePath();
+    context.stroke();
+    context.fill();
+    // this.drawAngles(context);
+
+    for (const point of this.hitbox) {
+      context.beginPath();
+      context.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+      context.closePath();
+      context.stroke();
+      context.fill();
+    }
   }
 
   public update(now: number, diff: number): void {

@@ -13,7 +13,7 @@ export class Engine {
   constructor(private readonly context: CanvasRenderingContext2D) {
     this.entities.set('enemy-ship-0', new EnemyShip(new Point(context.canvas.width / 2, context.canvas.height / 2)));
     this.entities.set('asteroid-0', new Asteroid(new Point(context.canvas.width / 2, context.canvas.height / 2)));
-    this.handleHmr();
+    import.meta.hot && this.handleHmr();
     this.loop();
   }
 
@@ -42,11 +42,9 @@ export class Engine {
   }
 
   private handleHmr() {
-    if (!import.meta.hot) return;
-
     // TODO: Make generic way of hot swapping entities (DRY)
     let enemyShipType = EnemyShip;
-    import.meta.hot.accept('./enemy-ship', module => {
+    import.meta.hot!.accept('./enemy-ship', module => {
       for (const [entityId, entity] of this.entities) {
         if (!(entity instanceof enemyShipType)) continue;
         this.entities.set(entityId,
@@ -58,7 +56,7 @@ export class Engine {
     });
 
     let asteroidType = Asteroid;
-    import.meta.hot.accept('./asteroid', module => {
+    import.meta.hot!.accept('./asteroid', module => {
       for (const [entityId, entity] of this.entities) {
         if (!(entity instanceof asteroidType)) continue;
         this.entities.set(entityId,
@@ -69,7 +67,7 @@ export class Engine {
       asteroidType = module!.Asteroid;
     });
 
-    import.meta.hot.accept('./time-stamp-monitor', module => {
+    import.meta.hot!.accept('./time-stamp-monitor', module => {
       this.monitor = Object.assign(new module!.TimeStampMonitor(), this.monitor);
     });
   }

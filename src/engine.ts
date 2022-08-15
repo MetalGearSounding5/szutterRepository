@@ -1,9 +1,10 @@
 import { EnemyShip } from './enemy-ship';
 import { TimeStampMonitor } from './time-stamp-monitor';
-import { TimeStamp } from '../main';
+import { Class, TimeStamp } from '../main';
 import { Point } from './collision-detector';
 import { Entity } from './entity';
 import { Asteroid } from './asteroid';
+import { ModuleNamespace } from 'vite/types/hot';
 
 export class Engine {
   protected readonly entities = new Map<string, Entity>();
@@ -42,33 +43,20 @@ export class Engine {
   }
 
   private handleHmr() {
-    // TODO: Make generic way of hot swapping entities (DRY)
-    let enemyShipType = EnemyShip;
-    import.meta.hot!.accept('./enemy-ship', module => {
-      for (const [entityId, entity] of this.entities) {
-        if (!(entity instanceof enemyShipType)) continue;
-        this.entities.set(entityId,
-          Object.create(module!.EnemyShip.prototype, Object.getOwnPropertyDescriptors(entity))
-        );
+    // import.meta.hot!.accept - accepts only plain string literals so we cannot execute it inside loops
+    const hmrEntity = (targetClass: Class<unknown>) => {
+      const className = Object.create(targetClass).name; // Cached className
+      return (module?: ModuleNamespace) => {
+        for (const [entityId, entity] of this.entities) {
+          if (entity.constructor.name !== className) continue;
+          this.entities.set(entityId, Object.create(module![className].prototype, Object.getOwnPropertyDescriptors(entity)));
+        }
       }
+    }
 
-      enemyShipType = module!.EnemyShip;
-    });
-
-    let asteroidType = Asteroid;
-    import.meta.hot!.accept('./asteroid', module => {
-      for (const [entityId, entity] of this.entities) {
-        if (!(entity instanceof asteroidType)) continue;
-        this.entities.set(entityId,
-          Object.create(module!.Asteroid.prototype, Object.getOwnPropertyDescriptors(entity))
-        );
-      }
-
-      asteroidType = module!.Asteroid;
-    });
-
-    import.meta.hot!.accept('./time-stamp-monitor', module => {
-      this.monitor = Object.assign(new module!.TimeStampMonitor(), this.monitor);
-    });
+    import.meta.hot!.accept('./enemy-ship', hmrEntity(EnemyShip));
+    import.meta.hot!.accept('./asteroid', hmrEntity(Asteroid));
+    import.meta.hot!.accept('./time-stamp-monitor', module =>
+      this.monitor = Object.assign(new module!.TimeStampMonitor(), this.monitor));
   }
 }

@@ -1,14 +1,18 @@
 import { EnemyShip } from './enemy-ship';
 import { TimeStampMonitor } from './time-stamp-monitor';
 import { TimeStamp } from '../main';
+import { Point } from './collision-detector';
+import { Entity } from './entity';
+import { Asteroid } from './asteroid';
 
 export class Engine {
-  protected readonly entities = new Map<string, EnemyShip>();
+  protected readonly entities = new Map<string, Entity>();
   public requestAnimationFrameId?: number;
   private monitor = new TimeStampMonitor();
 
   constructor(private readonly context: CanvasRenderingContext2D) {
-    this.entities.set('square-0', new EnemyShip({x: context.canvas.width / 2, y: context.canvas.height / 2}));
+    this.entities.set('enemy-ship-0', new EnemyShip(new Point(context.canvas.width / 2, context.canvas.height / 2)));
+    this.entities.set('asteroid-0', new Asteroid(new Point(context.canvas.width / 2, context.canvas.height / 2)));
     this.handleHmr();
     this.loop();
   }
@@ -40,17 +44,33 @@ export class Engine {
   private handleHmr() {
     if (!import.meta.hot) return;
 
-    import.meta.hot.accept('./entity', module => {
+    // TODO: Make generic way of hot swapping entities (DRY)
+    let enemyShipType = EnemyShip;
+    import.meta.hot.accept('./enemy-ship', module => {
       for (const [entityId, entity] of this.entities) {
-        // This way we can filter only target entities
-        // if (!(entity instanceof Entity)) continue;
-
-        this.entities.set(entityId, Object.assign(new module!.Entity(entity.position), entity));
+        if (!(entity instanceof enemyShipType)) continue;
+        this.entities.set(entityId,
+          Object.create(module!.EnemyShip.prototype, Object.getOwnPropertyDescriptors(entity))
+        );
       }
-    })
+
+      enemyShipType = module!.EnemyShip;
+    });
+
+    let asteroidType = Asteroid;
+    import.meta.hot.accept('./asteroid', module => {
+      for (const [entityId, entity] of this.entities) {
+        if (!(entity instanceof asteroidType)) continue;
+        this.entities.set(entityId,
+          Object.create(module!.Asteroid.prototype, Object.getOwnPropertyDescriptors(entity))
+        );
+      }
+
+      asteroidType = module!.Asteroid;
+    });
 
     import.meta.hot.accept('./time-stamp-monitor', module => {
       this.monitor = Object.assign(new module!.TimeStampMonitor(), this.monitor);
-    })
+    });
   }
 }

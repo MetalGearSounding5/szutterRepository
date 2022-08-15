@@ -1,15 +1,25 @@
 /* Some functions and code modified version from http://www.jeffreythompson.org/collision-detection */
 
+import { Vector } from '../main';
+
 export class Point {
-  constructor(public readonly x: number, public readonly y: number) { }
+  constructor(public x: number, public y: number) { }
 }
 
 export class Rect {
-  constructor(public readonly topLeft: Point, public readonly size: Point) { }
+  constructor(public readonly topLeft: Point, public readonly size: Vector) { }
 }
 
 export class Line {
   constructor(public readonly first: Point, public readonly second: Point) { }
+}
+
+export class Circle {
+  constructor(public readonly center: Point, public readonly radius: number) { }
+}
+
+export class Ellipse {
+
 }
 
 export type Poly = Point[];
@@ -28,19 +38,28 @@ export class CollisionDetector {
 
   }
 
-  public static rectCircle(): boolean {
-    return true; // FIXME: TODO: Implement.
+  public static rectCircle(first: Rect, second: Circle): boolean {
+    const { topLeft: { x: rx, y: ry }, size: { x: rw, y: rh }} = first;
+    const { center: { x: cx, y: cy }, radius: cr } = second;
+
+
+    const closestEdgeX = cx < rx ? rx : rx + rw;
+    const closestEdgeY = cy < ry ? ry : ry + rh;
+
+    const distance = this.distanceBetweenPoints(second.center, { x: closestEdgeX, y: closestEdgeY });
+
+    return distance <= second.radius;
   }
 
-  public static circleCircle(): boolean {
-    return true; // FIXME: TODO: Implement.
+  public static circleCircle(first: Circle, second: Circle): boolean {
+    return this.distanceBetweenPoints(first.center, second.center) <= first.radius + second.radius;
   }
 
-  public static pointCircle(): boolean {
-    return true; // FIXME: TODO: Implement.
+  public static pointCircle(first: Point, second: Circle): boolean {
+    return this.distanceBetweenPoints(first, second.center) <= second.radius;
   }
 
-  public static pointEllipse(): boolean {
+  public static pointEllipse(first: Point, second: Ellipse): boolean {
     return true; // FIXME: TODO: Implement.
   }
 
@@ -94,7 +113,22 @@ export class CollisionDetector {
   }
 
   public static pointPoly(point: Point, poly: Poly): boolean {
-    return true; // FIXME: TODO: Implement.
+    let collision = false;
+    for (let current = 0, next = 1; current < poly.length; current++, next++) {
+      // Get next vertex in list, if we've hit the end, wrap around to 0
+      next %= poly.length;
+
+      const vc = poly[current];
+      const vn = poly[next];
+
+      if ((
+        (vc.y >= point.y && vn.y < point.y) ||
+        (vc.y < point.y && vn.y >= point.y)
+      ) && point.x < (vn.x - vc.x) * (point.y - vc.y) / (vn.y - vc.y) + vc.x) {
+        collision = !collision;
+      }
+    }
+    return collision;
   }
 
   public static circlePoly(): boolean {
@@ -115,6 +149,7 @@ export class CollisionDetector {
   }
 
   public static polyPoly(first: Poly, second: Poly, interior = false): boolean {
+    // debugger;
     for (let current = 0, next = 1; current < first.length; current++, next++) {
       // Get next vertex in list, if we've hit the end, wrap around to 0
       next %= first.length;
@@ -145,5 +180,9 @@ export class CollisionDetector {
 
   public static pointArc(): boolean {
     return true; // FIXME: TODO: Implement.
+  }
+
+  private static distanceBetweenPoints(first: Point, second: Point): number {
+    return Math.sqrt(Math.pow(first.x - second.x, 2) + Math.pow(first.y - second.y, 2));
   }
 }

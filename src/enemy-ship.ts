@@ -1,11 +1,16 @@
-import { Point, TimeStamp } from '../main';
+import { TimeStamp } from '../main';
+import { Point, Poly } from './collision-detector';
+import { Entity } from './entity';
 
-export class EnemyShip {
+export class EnemyShip extends Entity {
+  public readonly hitbox: Poly = [];
   private hits = 0;
   private slowness = 5;
   private direction = 1;
 
-  constructor(public position: Point) { }
+  public constructor(position: Point) {
+    super(position, new Point(0, 0));
+  }
 
   public update(now: TimeStamp, diff: TimeStamp): void {
     if (this.position.x >= window.innerWidth) {
@@ -54,7 +59,7 @@ export class EnemyShip {
     triangle(height * -0.2, width * 0.5, {
       x: this.position.x ,
       y: this.position.y + height * 0.6
-    } );
+    });
 
     //draws the acceleration triangle
     context.fillStyle = `${color}50`;

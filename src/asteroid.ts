@@ -47,9 +47,7 @@ export class Asteroid extends Entity {
     }
   }
 
-  public update(now: number, diff: number): void {
-
-  }
+  public update(now: number, diff: number): void { }
 
   private rotatePoint(point: Point, angle: number): Point {
     const translatedPoint = new Point(point.x - this.position.x, point.y - this.position.y);
@@ -66,7 +64,7 @@ export class Asteroid extends Entity {
     let sumOfAngles = 0;
     let angles: number[] = [];
     
-    for (let i = 0; i < this.edges / 2; i++) {
+    for (let i = 0; i < Math.floor(this.edges / 2); i++) {
       const newAngle = (Math.random() * (maxAngle - minAngle)) + minAngle;
       const complementaryAngle = maxAngle - newAngle;
 
@@ -76,7 +74,9 @@ export class Asteroid extends Entity {
       angles.push(complementaryAngle);
    }
 
-    if (this.edges % 2 == 1) { angles.push(2 * Math.PI - sumOfAngles); }
+    if (this.edges % 2 == 1) {
+      angles.push(2 * Math.PI - sumOfAngles);
+    }
 
     const shuffle = () => {
       let currentIndex = angles.length,  randomIndex;

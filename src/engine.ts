@@ -5,6 +5,7 @@ import { Point } from './collision-detector';
 import { Entity } from './entity';
 import { Asteroid } from './asteroid';
 import { ModuleNamespace } from 'vite/types/hot';
+import { AsteroidFactory } from './asteroid-factory';
 
 export class Engine {
   protected readonly entities = new Map<string, Entity>();
@@ -13,7 +14,8 @@ export class Engine {
 
   constructor(private readonly context: CanvasRenderingContext2D) {
     // this.entities.set('enemy-ship-0', new EnemyShip(new Point(context.canvas.width / 2, context.canvas.height / 2)));
-    this.entities.set('asteroid-0', new Asteroid(new Point(context.canvas.width / 2, context.canvas.height / 2), 100, 12));
+    this.entities.set('asteroid-0', AsteroidFactory.makeCommonAsteroid(new Point(context.canvas.width / 2, context.canvas.height / 2), 100, 13));
+
     import.meta.hot && this.handleHmr();
     this.loop();
   }
@@ -43,7 +45,7 @@ export class Engine {
   }
 
   private handleHmr() {
-    // import.meta.hot!.accept - accepts only plain string literals so we cannot execute it inside loops
+    // import.meta.hot!.accept - accepts only plain string literals, so we cannot execute it inside loops
     const hmrEntity = (targetClass: Class<unknown>) => {
       const className = Object.create(targetClass).name; // Cached className
       return (module?: ModuleNamespace) => {

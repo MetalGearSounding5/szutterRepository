@@ -8,7 +8,7 @@ export class Asteroid extends Entity {
 
   public constructor(position: Point, public readonly size: number, private readonly edges: number) {
     super(position, new Point(0, 0));
-    this.angles = this.generateRandomAngles(edges);
+    this.angles = this.generateRandomAngles();
     this.hitbox = this.generatePointsFromAngles(this.angles);
   }
 
@@ -37,7 +37,6 @@ export class Asteroid extends Entity {
     context.closePath();
     context.stroke();
     context.fill();
-    // this.drawAngles(context);
 
     for (const point of this.hitbox) {
       context.beginPath();
@@ -61,34 +60,38 @@ export class Asteroid extends Entity {
     return new Point(translatedPoint.x * cos - translatedPoint.y * sin + this.position.x, translatedPoint.y * cos + translatedPoint.x * sin + this.position.y);
   }
 
-  private drawAngles(context: CanvasRenderingContext2D) {
-    context.beginPath();
-    const startingPoint = new Point(this.position.x, this.position.y - 10);
-    context.arc(startingPoint.x, startingPoint.y, 2,0, 2 * Math.PI);
-    for (const angle of this.angles) {
-      const newPoint = this.rotatePoint(startingPoint, angle);
-      console.log(newPoint);
-    }
-    context.fill();
-  }
-
-  private generateRandomAngles(edges: number): number[] { // FIXME:
-    const minAngle = Math.floor(2 * Math.PI / edges);
-    const maxAngle = Math.floor(2 * Math.PI / edges * 2);
+  private generateRandomAngles(): number[] {
+    const maxAngle = 2 * Math.PI / this.edges * 2;
+    const minAngle = maxAngle * 0.1;
     let sumOfAngles = 0;
-    let angles = [];
+    let angles: number[] = [];
     
-    for (let i = 0; i < edges - 1; i++) {
+    for (let i = 0; i < this.edges / 2; i++) {
       const newAngle = (Math.random() * (maxAngle - minAngle)) + minAngle;
-      sumOfAngles += newAngle;
-      angles.push(newAngle);
-    }
+      const complementaryAngle = maxAngle - newAngle;
 
-    angles.push(2 * Math.PI - sumOfAngles);
+      sumOfAngles += newAngle + complementaryAngle;
+
+      angles.push(newAngle);
+      angles.push(complementaryAngle);
+   }
+
+    if (this.edges % 2 == 1) { angles.push(2 * Math.PI - sumOfAngles); }
+
+    const shuffle = () => {
+      let currentIndex = angles.length,  randomIndex;
+      while (currentIndex != 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [angles[currentIndex], angles[randomIndex]] = [angles[randomIndex], angles[currentIndex]];
+      }
+    };
+
+    shuffle();
     return angles;
   }
   
-  private generatePointsFromAngles(angles: number[]): Point[] { // FIXME:
+  private generatePointsFromAngles(angles: number[]): Point[] {
     const startingPoint = new Point(this.position.x, this.position.y - this.size);
     const startingAngle = Math.random() * Math.PI * 2;
     

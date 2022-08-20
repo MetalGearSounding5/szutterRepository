@@ -1,7 +1,7 @@
 import { EnemyShip } from './enemy-ship';
 import { TimeStampMonitor } from './time-stamp-monitor';
 import { Class, TimeStamp } from '../main';
-import { Point } from './collision-detector';
+import { CollisionDetector, Line, Point } from './collision-detector';
 import { Entity } from './entity';
 import { Asteroid } from './asteroid';
 import { ModuleNamespace } from 'vite/types/hot';
@@ -14,14 +14,80 @@ export class Engine {
 
   constructor(private readonly context: CanvasRenderingContext2D) {
     // this.entities.set('enemy-ship-0', new EnemyShip(new Point(context.canvas.width / 2, context.canvas.height / 2)));
-    this.entities.set('asteroid-0', AsteroidFactory.makeCommonAsteroid(new Point(context.canvas.width / 2, context.canvas.height / 2), 100, 13));
-
+    this.entitiesMock();
     import.meta.hot && this.handleHmr();
     this.loop();
   }
 
+  private entitiesMock(): void {
+    const rnd = (min: number, max: number) => Math.random() * max + min;
+
+    for (let i = 0; i < 150; i++) {
+      this.entities.set(`asteroid-${i}`,
+        AsteroidFactory.makeCommonAsteroid(
+          new Point(rnd(0, window.innerWidth), rnd(0, window.innerHeight)),
+          rnd(50, 100),
+          rnd(5, 14))
+      );
+    }
+  }
+
   private update(now: TimeStamp, diff: TimeStamp): void {
     window.debugMode && this.monitor.update(now, diff);
+
+    for (const asteroid of this.entities.values()) {
+      (asteroid as Asteroid).color = 'yellow';
+    }
+
+    // kolizja
+    for (const entity of this.entities.values()) {
+      for (const otherEntity of this.entities.values()) {
+        if (entity === otherEntity) continue;
+
+        const a1: Asteroid = entity as Asteroid;
+        const a2: Asteroid = otherEntity as Asteroid;
+
+        if (CollisionDetector.polyPoly(entity.materialisedHitbox, otherEntity.materialisedHitbox, true)) {
+          a1.color = 'red';
+          a2.color = 'red';
+        }
+      }
+    }
+
+    // movement
+    for (const entity of this.entities.values()) {
+      const leftUpperCorner = new Point(0, 0);
+      const leftLowerCorner = new Point(0, this.context.canvas.height);
+      const rightUpperCorner = new Point(this.context.canvas.width, 0);
+      const rightLowerCorner = new Point(this.context.canvas.width, this.context.canvas.height);
+
+      // tu
+
+      if (CollisionDetector.linePoly(new Line(leftUpperCorner, leftLowerCorner), entity.materialisedHitbox)) {
+        entity.velocity.x *= -1;
+        console.log('left');
+      }
+
+      if (CollisionDetector.linePoly(new Line(leftLowerCorner, rightLowerCorner), entity.materialisedHitbox)) {
+        entity.velocity.y *= -1;
+        console.log('bottom');
+      }
+
+      if (CollisionDetector.linePoly(new Line(rightLowerCorner, rightUpperCorner), entity.materialisedHitbox)) {
+        entity.velocity.x *= -1;
+        console.log('right');
+      }
+
+      if (CollisionDetector.linePoly(new Line(rightUpperCorner, leftUpperCorner), entity.materialisedHitbox)) {
+        entity.velocity.y *= -1;
+        console.log('top');
+      }
+
+      entity.position.x += entity.velocity.x * diff * 0.5;
+      entity.position.y += entity.velocity.y * diff * 0.5;
+    }
+
+
     for (const entity of this.entities.values()) {
       entity.update(now, diff);
     }

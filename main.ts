@@ -20,6 +20,7 @@ declare global {
   }
 }
 
+window.debugMode = true;
 window.addEventListener('keydown', ({code}) => {
     if (code !== 'F9') return;
     window.debugMode = !window.debugMode;

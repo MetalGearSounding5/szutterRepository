@@ -2,18 +2,21 @@ import { Entity } from './entity';
 import { Point, Poly } from './collision-detector';
 
 export class Asteroid extends Entity {
-  public readonly hitbox: Poly;
+  public readonly relativeHitbox: Poly;
   private readonly angles: number[];
-
+  public color = 'yellow';
 
   public constructor(position: Point, public readonly size: number, private readonly edges: number) {
     super(position, new Point(0, 0));
     this.angles = this.generateRandomAngles();
-    this.hitbox = this.generatePointsFromAngles(this.angles);
+    this.relativeHitbox = this.generateRelativePointsFromAngles(this.angles);
+
+    this.velocity.x = Math.random();
+    this.velocity.y = Math.random();
   }
 
   public draw(context: CanvasRenderingContext2D): void {
-    const [first, ...rest] = this.hitbox;
+    const [first, ...rest] = this.materialisedHitbox;
 
     context.beginPath();
     context.moveTo(first.x, first.y);
@@ -24,21 +27,23 @@ export class Asteroid extends Entity {
 
     context.closePath();
 
-    context.strokeStyle = 'yellow';
+    context.strokeStyle = this.color;
     context.stroke();
 
     if (!window.debugMode) return;
 
-    context.strokeStyle = 'rebeccapurple';
-    context.fillStyle = 'rebeccapurple';
-
+    context.strokeStyle = 'red';
+    context.fillStyle = 'red';
     context.beginPath();
     context.arc(this.position.x, this.position.y, 2, 0, 2 * Math.PI);
     context.closePath();
     context.stroke();
     context.fill();
 
-    for (const point of this.hitbox) {
+    context.strokeStyle = 'rebeccapurple';
+    context.fillStyle = 'rebeccapurple';
+
+    for (const point of this.materialisedHitbox) {
       context.beginPath();
       context.arc(point.x, point.y, 2, 0, 2 * Math.PI);
       context.closePath();
@@ -47,15 +52,13 @@ export class Asteroid extends Entity {
     }
   }
 
-  public update(now: number, diff: number): void { }
-
   private rotatePoint(point: Point, angle: number): Point {
-    const translatedPoint = new Point(point.x - this.position.x, point.y - this.position.y);
+    const translatedPoint = new Point(point.x, point.y);
 
     const sin = Math.sin(angle);
     const cos = Math.cos(angle);
 
-    return new Point(translatedPoint.x * cos - translatedPoint.y * sin + this.position.x, translatedPoint.y * cos + translatedPoint.x * sin + this.position.y);
+    return new Point(translatedPoint.x * cos - translatedPoint.y * sin, translatedPoint.y * cos + translatedPoint.x * sin);
   }
 
   private generateRandomAngles(): number[] {
@@ -91,21 +94,23 @@ export class Asteroid extends Entity {
     return angles;
   }
   
-  private generatePointsFromAngles(angles: number[]): Point[] {
-    const startingPoint = new Point(this.position.x, this.position.y - this.size);
+  private generateRelativePointsFromAngles(angles: number[]): Point[] {
+    const startingPoint = new Point(0, -this.size);
     const startingAngle = Math.random() * Math.PI * 2;
-    
-    let points = [];    
+
+    let points = [];
     const startingRotatedPoint = this.rotatePoint(startingPoint, startingAngle);
     points.push(startingRotatedPoint);
-    
+
+    console.log(startingPoint)
+
     function *enumerate<T>(enumerable: T[]): Generator<[number, T]> {
       let i = 0;
       for (const v of enumerable) {
         yield [i++, v];
       }
     }
-    
+
     for (const [i, angle] of enumerate(angles)) {
       points.push(this.rotatePoint(points[i], angle));
     }

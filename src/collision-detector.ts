@@ -149,7 +149,6 @@ export class CollisionDetector {
   }
 
   public static polyPoly(first: Poly, second: Poly, interior = false): boolean {
-    // debugger;
     for (let current = 0, next = 1; current < first.length; current++, next++) {
       // Get next vertex in list, if we've hit the end, wrap around to 0
       next %= first.length;

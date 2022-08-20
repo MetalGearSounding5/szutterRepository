@@ -13,11 +13,9 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@webgpu/types": "^0.1.21",
-    "typescript": "^4.6.4",
-    "vite": "^3.0.0"
-  },
-  "dependencies": {
-    "sass": "^1.54.3"
+    "@webgpu/types": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "sass": "latest"
   }
 }

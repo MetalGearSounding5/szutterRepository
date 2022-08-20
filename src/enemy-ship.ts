@@ -3,7 +3,7 @@ import { Point, Poly } from './collision-detector';
 import { Entity } from './entity';
 
 export class EnemyShip extends Entity {
-  public readonly hitbox: Poly = [];
+  public readonly relativeHitbox: Poly = [];
   private hits = 0;
   private slowness = 5;
   private direction = 1;
@@ -12,7 +12,9 @@ export class EnemyShip extends Entity {
     super(position, new Point(0, 0));
   }
 
-  public update(now: TimeStamp, diff: TimeStamp): void {
+  public override update(now: TimeStamp, diff: TimeStamp): void {
+    super.update(now, diff);
+    
     if (this.position.x >= window.innerWidth) {
       this.direction = -1;
       this.hits++;

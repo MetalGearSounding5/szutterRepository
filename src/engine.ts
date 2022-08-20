@@ -22,7 +22,7 @@ export class Engine {
   private entitiesMock(): void {
     const rnd = (min: number, max: number) => Math.random() * max + min;
 
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 10; i++) {
       this.entities.set(`asteroid-${i}`,
         AsteroidFactory.makeCommonAsteroid(
           new Point(rnd(0, window.innerWidth), rnd(0, window.innerHeight)),

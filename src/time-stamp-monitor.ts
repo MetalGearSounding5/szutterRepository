@@ -1,12 +1,21 @@
 import { TimeStamp } from '../main';
+import { InputManager } from './input-manager';
+import { Entity } from './entity';
+import { CollisionDetector, Point } from './collision-detector';
+import { Vector } from './flat/vector';
 
 export class TimeStampMonitor {
   private readonly frameBarHeight = 20;
   private readonly frameBarWidth = 3;
   private readonly frameGraphMargin = 5;
   private buffer: TimeStamp[] = [];
+  private entitiesUnderPointer: Map<string, Entity> = new Map<string, Entity>();
 
-  public constructor(private readonly period = 5) {}
+  public constructor(
+    private readonly inputManager: InputManager,
+    private readonly entities: Map<string, Entity>,
+    private readonly period = 5
+  ) {}
 
   public get averageFrameTime(): number {
     return Array.from(this.buffer.values())
@@ -20,8 +29,52 @@ export class TimeStampMonitor {
     this.buffer.push(diff);
     if (previousSecond !== currentSecond && currentSecond % this.period === 0) {
       console.debug(`Time: ${now}, Average Frame Time: ${this.averageFrameTime.toFixed(3)}`);
-
       this.buffer = this.buffer.slice(-window.desiredFramesPerSecond);
+    }
+
+    this.entitiesUnderPointer.clear();
+
+    for (let entity of this.entities.values()) {
+      entity.debug = false;
+    }
+
+    const previousMilliSecond = Math.trunc((now - diff) / 10);
+    const currentMilliSecond = Math.trunc(now / 10);
+
+    for (const [id, entity] of this.entities) {
+      if (!CollisionDetector.pointPoly(this.inputManager.currentPointerPosition, entity.materialisedHitbox)) {
+        continue;
+      }
+
+      entity.debug = true;
+      this.entitiesUnderPointer.set(id, entity);
+
+      if (this.inputManager.pointerDown) {
+        entity.position.x = this.inputManager.currentPointerPosition.x;
+        entity.position.y = this.inputManager.currentPointerPosition.y;
+      }
+
+      if (previousMilliSecond !== currentMilliSecond && currentMilliSecond % 10 !== 0) {
+        continue;
+      }
+
+      if (this.inputManager.getKeyState('Equal')) {
+        entity.velocity.x += 0.5;
+        entity.velocity.y += 0.5;
+      }
+
+      if (this.inputManager.getKeyState('Minus')) {
+        entity.velocity.x -= 0.5;
+        entity.velocity.y -= 0.5;
+
+        if (entity.velocity.x <= 0) {
+          entity.velocity.x = 0;
+        }
+
+        if (entity.velocity.y <= 0) {
+          entity.velocity.y = 0;
+        }
+      }
     }
   }
 
@@ -56,5 +109,19 @@ export class TimeStampMonitor {
       this.frameGraphMargin,
       this.frameGraphMargin + this.frameBarHeight + this.frameGraphMargin + fontSize / 2
     );
+
+    context.fillText(`Entities under pointer (${this.entitiesUnderPointer.size}):`,
+      this.frameGraphMargin,
+      this.frameGraphMargin + this.frameBarHeight + fontSize * 2);
+
+    let i = 3;
+    for (const [id, entity] of this.entitiesUnderPointer) {
+
+      context.fillText(`#${id}`,
+        this.frameGraphMargin,
+        this.frameGraphMargin + this.frameBarHeight + fontSize * i);
+
+      i++;
+    }
   }
 }

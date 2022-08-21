@@ -1,5 +1,6 @@
 import { Entity } from './entity';
 import { Point, Poly } from './collision-detector';
+import { Vector } from './flat/vector';
 
 export class Asteroid extends Entity {
   public readonly relativeHitbox: Poly;
@@ -7,7 +8,7 @@ export class Asteroid extends Entity {
   public color = 'yellow';
 
   public constructor(position: Point, public readonly size: number, private readonly edges: number) {
-    super(position, new Point(0, 0));
+    super(position, new Vector(0, 0));
     this.angles = this.generateRandomAngles();
     this.relativeHitbox = this.generateRelativePointsFromAngles(this.angles);
 
@@ -30,7 +31,7 @@ export class Asteroid extends Entity {
     context.strokeStyle = this.color;
     context.stroke();
 
-    if (!window.debugMode) return;
+    if (!this.debug) return;
 
     context.strokeStyle = 'red';
     context.fillStyle = 'red';
@@ -101,8 +102,6 @@ export class Asteroid extends Entity {
     let points = [];
     const startingRotatedPoint = this.rotatePoint(startingPoint, startingAngle);
     points.push(startingRotatedPoint);
-
-    console.log(startingPoint)
 
     function *enumerate<T>(enumerable: T[]): Generator<[number, T]> {
       let i = 0;

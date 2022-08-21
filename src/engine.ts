@@ -6,11 +6,13 @@ import { Entity } from './entity';
 import { Asteroid } from './asteroid';
 import { ModuleNamespace } from 'vite/types/hot';
 import { AsteroidFactory } from './asteroid-factory';
+import { InputManager } from './input-manager';
 
 export class Engine {
   protected readonly entities = new Map<string, Entity>();
   public requestAnimationFrameId?: number;
-  private monitor = new TimeStampMonitor();
+  private readonly inputManager = new InputManager();
+  private monitor = new TimeStampMonitor(this.inputManager, this.entities);
 
   constructor(private readonly context: CanvasRenderingContext2D) {
     // this.entities.set('enemy-ship-0', new EnemyShip(new Point(context.canvas.width / 2, context.canvas.height / 2)));
@@ -65,22 +67,18 @@ export class Engine {
 
       if (CollisionDetector.linePoly(new Line(leftUpperCorner, leftLowerCorner), entity.materialisedHitbox)) {
         entity.velocity.x *= -1;
-        console.log('left');
       }
 
       if (CollisionDetector.linePoly(new Line(leftLowerCorner, rightLowerCorner), entity.materialisedHitbox)) {
         entity.velocity.y *= -1;
-        console.log('bottom');
       }
 
       if (CollisionDetector.linePoly(new Line(rightLowerCorner, rightUpperCorner), entity.materialisedHitbox)) {
         entity.velocity.x *= -1;
-        console.log('right');
       }
 
       if (CollisionDetector.linePoly(new Line(rightUpperCorner, leftUpperCorner), entity.materialisedHitbox)) {
         entity.velocity.y *= -1;
-        console.log('top');
       }
 
       entity.position.x += entity.velocity.x * diff * 0.5;

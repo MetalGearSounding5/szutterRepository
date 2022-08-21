@@ -6,7 +6,6 @@ import { Point } from './src/collision-detector';
 import { ViteHotContext } from 'vite/types/hot';
 
 export type TimeStamp = DOMHighResTimeStamp;
-export type Vector = Point;
 export interface Class<T> { new(...args: never[]): T; }
 
 declare global {

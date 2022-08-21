@@ -1,6 +1,6 @@
 /* Some functions and code modified version from http://www.jeffreythompson.org/collision-detection */
 
-import { Vector } from '../main';
+import { Vector } from './flat/vector';
 
 export class Point {
   constructor(public x: number, public y: number) { }

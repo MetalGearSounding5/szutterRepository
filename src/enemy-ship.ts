@@ -1,6 +1,7 @@
 import { TimeStamp } from '../main';
 import { Point, Poly } from './collision-detector';
 import { Entity } from './entity';
+import { Vector } from './flat/vector';
 
 export class EnemyShip extends Entity {
   public readonly relativeHitbox: Poly = [];
@@ -9,7 +10,7 @@ export class EnemyShip extends Entity {
   private direction = 1;
 
   public constructor(position: Point) {
-    super(position, new Point(0, 0));
+    super(position, new Vector(0, 0));
   }
 
   public override update(now: TimeStamp, diff: TimeStamp): void {

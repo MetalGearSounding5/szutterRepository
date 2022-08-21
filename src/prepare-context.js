@@ -2,8 +2,8 @@ export const prepareContext = () => {
   const canvas = document.getElementById('canvas');
 
   const fitCanvasToInnerWindow = () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth * window.devicePixelRatio;
+    canvas.height = window.innerHeight * window.devicePixelRatio;
   }
 
   window.onresize = fitCanvasToInnerWindow;

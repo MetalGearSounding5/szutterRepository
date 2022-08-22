@@ -49,6 +49,7 @@ export class TimeStampMonitor {
       //   continue;
       // }
 
+
       if (!CollisionDetector.pointCircle(this.inputManager.currentPointerPosition, entity as unknown as Circle)) {
         continue;
       }

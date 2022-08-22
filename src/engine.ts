@@ -21,12 +21,18 @@ export class Engine {
 
   constructor(private readonly context: CanvasRenderingContext2D) {
     // this.entities.set('enemy-ship-0', new EnemyShip(new Point(context.canvas.width / 2, context.canvas.height / 2)));
-    this.entitiesMock();
-    // this.entities.set('ball', new Circle(
-    //   new Point(context.canvas.width / 2, context.canvas.height / 2),
-    //   new Vector(Number.MAX_VALUE, Number.MAX_VALUE),
-    //   20
-    // ) as unknown as Entity);
+    // this.entitiesMock();
+    this.entities.set('ball-0', new Circle(
+      new Point(context.canvas.width / 2 - 100, context.canvas.height / 2),
+      new Vector(-10, 0),
+      60
+    ) as unknown as Entity);
+
+    this.entities.set('ball-1', new Circle(
+      new Point(context.canvas.width / 2 + 100, context.canvas.height / 2),
+      new Vector(10, 0),
+      30
+    ) as unknown as Entity);
     import.meta.hot && this.handleHmr();
     this.loop();
   }
@@ -44,7 +50,7 @@ export class Engine {
     // }
 
 
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 1; i++) {
       this.entities.set(`circle-${i}`, new Circle(
         new Point(rnd(50, window.innerWidth - 50), rnd(50, window.innerHeight - 50)),
         new Vector(rnd(0, 5), rnd(0, 5)),
@@ -78,7 +84,8 @@ export class Engine {
         const normal = Vector.normalize(new Vector(c2.position.x - c1.position.x, c2.position.y - c1.position.y));
         const depth = c1.radius + c2.radius - CollisionDetector.distanceBetweenPoints(c1.position, c2.position);
 
-        const c1V = c1.velocity.add(normal.multiply(-depth / 2));
+        const c1A = c1.radius / c2.radius;
+        const c1V = c1.velocity.add(normal.multiply(-depth / c1A));
 
         if (!Number.isNaN(c1V.x)) {
           c1.velocity.x = c1V.x;
@@ -88,8 +95,9 @@ export class Engine {
           c1.velocity.y = c1V.y;
         }
 
-        const c2V = c2.velocity.add(normal.multiply(depth / 2));
-
+        const c2A = c2.radius / c1.radius;
+        const c2V = c2.velocity.add(normal.multiply(depth / c2A));
+        console.log(c1A + c2A);
         if (!Number.isNaN(c2V.x)) {
           c2.velocity.x = c2V.x;
         }

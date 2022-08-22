@@ -1,15 +1,17 @@
 * {
   pointer-events: none;
   touch-action: none;
+  box-sizing: border-box;
 }
 
 body, html {
   color-scheme: dark;
   margin: 0;
+  padding: 0;
   background-color: black;
 
   canvas {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    inset: 0;
   }
 }

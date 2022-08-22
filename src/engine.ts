@@ -21,17 +21,17 @@ export class Engine {
 
   constructor(private readonly context: CanvasRenderingContext2D) {
     // this.entities.set('enemy-ship-0', new EnemyShip(new Point(context.canvas.width / 2, context.canvas.height / 2)));
-    // this.entitiesMock();
+    this.entitiesMock();
     this.entities.set('ball-0', new Circle(
       new Point(context.canvas.width / 2 - 100, context.canvas.height / 2),
       new Vector(-10, 0),
-      60
+      100
     ) as unknown as Entity);
 
     this.entities.set('ball-1', new Circle(
       new Point(context.canvas.width / 2 + 100, context.canvas.height / 2),
       new Vector(10, 0),
-      30
+      10
     ) as unknown as Entity);
     import.meta.hot && this.handleHmr();
     this.loop();
@@ -40,17 +40,7 @@ export class Engine {
   private entitiesMock(): void {
     const rnd = (min: number, max: number) => Math.random() * (max - min) + min;
 
-    // for (let i = 0; i < 10; i++) {
-    //   this.entities.set(`asteroid-${i}`,
-    //     AsteroidFactory.makeCommonAsteroid(
-    //       new Point(rnd(0, window.innerWidth), rnd(0, window.innerHeight)),
-    //       rnd(50, 100),
-    //       rnd(5, 14))
-    //   );
-    // }
-
-
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 10; i++) {
       this.entities.set(`circle-${i}`, new Circle(
         new Point(rnd(50, window.innerWidth - 50), rnd(50, window.innerHeight - 50)),
         new Vector(rnd(0, 5), rnd(0, 5)),
@@ -84,29 +74,17 @@ export class Engine {
         const normal = Vector.normalize(new Vector(c2.position.x - c1.position.x, c2.position.y - c1.position.y));
         const depth = c1.radius + c2.radius - CollisionDetector.distanceBetweenPoints(c1.position, c2.position);
 
-        const c1A = c1.radius / c2.radius;
-        const c1V = c1.velocity.add(normal.multiply(-depth / c1A));
+        const total = c1.radius + c2.radius;
+        const prop1 = c1.radius / total;
+        const prop2 = c2.radius / total;
 
-        if (!Number.isNaN(c1V.x)) {
-          c1.velocity.x = c1V.x;
-        }
-
-        if (!Number.isNaN(c1V.y)) {
-          c1.velocity.y = c1V.y;
-        }
-
-        const c2A = c2.radius / c1.radius;
-        const c2V = c2.velocity.add(normal.multiply(depth / c2A));
-        console.log(c1A + c2A);
-        if (!Number.isNaN(c2V.x)) {
-          c2.velocity.x = c2V.x;
-        }
-
-        if (!Number.isNaN(c2V.y)) {
-          c2.velocity.y = c2V.y;
-        }
+        c1.velocity = c1.velocity.add(normal.multiply(-depth / 2).multiply(prop2));
+        c2.velocity = c2.velocity.add(normal.multiply(depth / 2).multiply(prop1));
       }
     }
+
+    const cW = this.context.canvas.width;
+    const cH = this.context.canvas.height;
 
     // movement
     for (const entity of materializedEntities) {
@@ -128,7 +106,6 @@ export class Engine {
 
       if (entity.position.x - entity.radius < 0) {
         entity.position.x = entity.radius;
-        entity.velocity.x *= -1;
       }
 
       CollisionDetector.lineCircle(new Line(leftLowerCorner, rightLowerCorner), entity, distance => { // Bottom
@@ -136,9 +113,8 @@ export class Engine {
         entity.velocity.y *= -1;
       });
 
-      if (entity.position.y + entity.radius > window.innerHeight) {
-        entity.position.y = window.innerHeight - entity.radius;
-        entity.velocity.y *= -1;
+      if (entity.position.y + entity.radius > cH) {
+        entity.position.y = cH - entity.radius;
       }
 
       CollisionDetector.lineCircle(new Line(rightLowerCorner, rightUpperCorner), entity, distance => { // Right
@@ -146,9 +122,8 @@ export class Engine {
         entity.velocity.x *= -1;
       });
 
-      if (entity.position.x + entity.radius > window.innerWidth) {
-        entity.velocity.x *= -1;
-        entity.position.x = window.innerWidth - entity.radius;
+      if (entity.position.x + entity.radius > cW) {
+        entity.position.x = cW - entity.radius;
       }
 
 
@@ -159,7 +134,6 @@ export class Engine {
 
       if (entity.position.y - entity.radius < 0) {
         entity.position.y = entity.radius;
-        entity.velocity.y *= -1;
       }
     }
 

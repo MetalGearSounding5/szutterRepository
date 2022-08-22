@@ -1,12 +1,17 @@
 import { EnemyShip } from './enemy-ship';
 import { TimeStampMonitor } from './time-stamp-monitor';
 import { Class, TimeStamp } from '../main';
-import { CollisionDetector, Line, Point } from './collision-detector';
+import { CollisionDetector, Line } from './collision-detector';
 import { Entity } from './entity';
 import { Asteroid } from './asteroid';
 import { ModuleNamespace } from 'vite/types/hot';
 import { AsteroidFactory } from './asteroid-factory';
 import { InputManager } from './input-manager';
+import { Circle } from './circle';
+import { Vector } from './flat/vector';
+import { Point } from './flat/point';
+
+const VELOCITY_CAP = window.innerWidth / 100;
 
 export class Engine {
   protected readonly entities = new Map<string, Entity>();
@@ -17,77 +22,142 @@ export class Engine {
   constructor(private readonly context: CanvasRenderingContext2D) {
     // this.entities.set('enemy-ship-0', new EnemyShip(new Point(context.canvas.width / 2, context.canvas.height / 2)));
     this.entitiesMock();
+    // this.entities.set('ball', new Circle(
+    //   new Point(context.canvas.width / 2, context.canvas.height / 2),
+    //   new Vector(Number.MAX_VALUE, Number.MAX_VALUE),
+    //   20
+    // ) as unknown as Entity);
     import.meta.hot && this.handleHmr();
     this.loop();
   }
 
   private entitiesMock(): void {
-    const rnd = (min: number, max: number) => Math.random() * max + min;
+    const rnd = (min: number, max: number) => Math.random() * (max - min) + min;
 
-    for (let i = 0; i < 10; i++) {
-      this.entities.set(`asteroid-${i}`,
-        AsteroidFactory.makeCommonAsteroid(
-          new Point(rnd(0, window.innerWidth), rnd(0, window.innerHeight)),
-          rnd(50, 100),
-          rnd(5, 14))
-      );
+    // for (let i = 0; i < 10; i++) {
+    //   this.entities.set(`asteroid-${i}`,
+    //     AsteroidFactory.makeCommonAsteroid(
+    //       new Point(rnd(0, window.innerWidth), rnd(0, window.innerHeight)),
+    //       rnd(50, 100),
+    //       rnd(5, 14))
+    //   );
+    // }
+
+
+    for (let i = 0; i < 40; i++) {
+      this.entities.set(`circle-${i}`, new Circle(
+        new Point(rnd(50, window.innerWidth - 50), rnd(50, window.innerHeight - 50)),
+        new Vector(rnd(0, 5), rnd(0, 5)),
+        rnd(5, 80)
+      ) as unknown as Entity);
     }
   }
 
   private update(now: TimeStamp, diff: TimeStamp): void {
     window.debugMode && this.monitor.update(now, diff);
 
-    for (const asteroid of this.entities.values()) {
-      (asteroid as Asteroid).color = 'yellow';
-    }
+    const leftUpperCorner = new Point(0, 0);
+    const leftLowerCorner = new Point(0, this.context.canvas.height);
+    const rightUpperCorner = new Point(this.context.canvas.width, 0);
+    const rightLowerCorner = new Point(this.context.canvas.width, this.context.canvas.height);
+    const materializedEntities = Array.from(this.entities.values()) as unknown as Circle[];
 
-    // kolizja
-    for (const entity of this.entities.values()) {
-      for (const otherEntity of this.entities.values()) {
-        if (entity === otherEntity) continue;
+    for (let i = 0; i < materializedEntities.length - 1; i++) {
+      const first = materializedEntities[i];
 
-        const a1: Asteroid = entity as Asteroid;
-        const a2: Asteroid = otherEntity as Asteroid;
+      for (let j = i + 1; j < materializedEntities.length; j++) {
+        const second = materializedEntities[j];
 
-        if (CollisionDetector.polyPoly(entity.materialisedHitbox, otherEntity.materialisedHitbox, true)) {
-          a1.color = 'red';
-          a2.color = 'red';
+        const c1 = first;
+        const c2 = second;
+
+        if (!CollisionDetector.circleCircle(c1, c2)) {
+          continue;
+        }
+
+        const normal = Vector.normalize(new Vector(c2.position.x - c1.position.x, c2.position.y - c1.position.y));
+        const depth = c1.radius + c2.radius - CollisionDetector.distanceBetweenPoints(c1.position, c2.position);
+
+        const c1V = c1.velocity.add(normal.multiply(-depth / 2));
+
+        if (!Number.isNaN(c1V.x)) {
+          c1.velocity.x = c1V.x;
+        }
+
+        if (!Number.isNaN(c1V.y)) {
+          c1.velocity.y = c1V.y;
+        }
+
+        const c2V = c2.velocity.add(normal.multiply(depth / 2));
+
+        if (!Number.isNaN(c2V.x)) {
+          c2.velocity.x = c2V.x;
+        }
+
+        if (!Number.isNaN(c2V.y)) {
+          c2.velocity.y = c2V.y;
         }
       }
     }
 
     // movement
-    for (const entity of this.entities.values()) {
-      const leftUpperCorner = new Point(0, 0);
-      const leftLowerCorner = new Point(0, this.context.canvas.height);
-      const rightUpperCorner = new Point(this.context.canvas.width, 0);
-      const rightLowerCorner = new Point(this.context.canvas.width, this.context.canvas.height);
+    for (const entity of materializedEntities) {
+      if (entity.velocity.x > VELOCITY_CAP) {
+        entity.velocity.x = VELOCITY_CAP;
+      }
 
-      // tu
+      if (entity.velocity.y > VELOCITY_CAP) {
+        entity.velocity.y = VELOCITY_CAP;
+      }
 
-      if (CollisionDetector.linePoly(new Line(leftUpperCorner, leftLowerCorner), entity.materialisedHitbox)) {
+      entity.position.x += entity.velocity.x;
+      entity.position.y += entity.velocity.y;
+
+      CollisionDetector.lineCircle(new Line(leftUpperCorner, leftLowerCorner), entity, distance => { // Left
+        entity.position.x += distance;
+        entity.velocity.x *= -1;
+      });
+
+      if (entity.position.x - entity.radius < 0) {
+        entity.position.x = entity.radius;
         entity.velocity.x *= -1;
       }
 
-      if (CollisionDetector.linePoly(new Line(leftLowerCorner, rightLowerCorner), entity.materialisedHitbox)) {
+      CollisionDetector.lineCircle(new Line(leftLowerCorner, rightLowerCorner), entity, distance => { // Bottom
+        entity.position.y -= distance;
+        entity.velocity.y *= -1;
+      });
+
+      if (entity.position.y + entity.radius > window.innerHeight) {
+        entity.position.y = window.innerHeight - entity.radius;
         entity.velocity.y *= -1;
       }
 
-      if (CollisionDetector.linePoly(new Line(rightLowerCorner, rightUpperCorner), entity.materialisedHitbox)) {
+      CollisionDetector.lineCircle(new Line(rightLowerCorner, rightUpperCorner), entity, distance => { // Right
+        entity.position.x -= distance;
         entity.velocity.x *= -1;
+      });
+
+      if (entity.position.x + entity.radius > window.innerWidth) {
+        entity.velocity.x *= -1;
+        entity.position.x = window.innerWidth - entity.radius;
       }
 
-      if (CollisionDetector.linePoly(new Line(rightUpperCorner, leftUpperCorner), entity.materialisedHitbox)) {
+
+      CollisionDetector.lineCircle(new Line(rightUpperCorner, leftUpperCorner), entity, distance => { // Top
+        entity.position.y += distance;
+        entity.velocity.y *= -1;
+      });
+
+      if (entity.position.y - entity.radius < 0) {
+        entity.position.y = entity.radius;
         entity.velocity.y *= -1;
       }
-
-      entity.position.x += entity.velocity.x * diff * 0.5;
-      entity.position.y += entity.velocity.y * diff * 0.5;
     }
 
 
     for (const entity of this.entities.values()) {
-      entity.update(now, diff);
+      entity.update?.(now, diff);
     }
   }
 

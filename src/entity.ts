@@ -1,6 +1,7 @@
-import { Point, Poly } from './collision-detector';
+import { Poly } from './collision-detector';
 import { TimeStamp } from '../main';
 import { Vector } from './flat/vector';
+import { Point } from './flat/point';
 
 export abstract class Entity {
   public abstract readonly relativeHitbox: Poly;

@@ -1,6 +1,7 @@
 import { Entity } from './entity';
-import { Point, Poly } from './collision-detector';
+import { Poly } from './collision-detector';
 import { Vector } from './flat/vector';
+import { Point } from './flat/point';
 
 export class Asteroid extends Entity {
   public readonly relativeHitbox: Poly;

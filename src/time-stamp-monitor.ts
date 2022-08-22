@@ -1,8 +1,9 @@
 import { TimeStamp } from '../main';
 import { InputManager } from './input-manager';
 import { Entity } from './entity';
-import { CollisionDetector, Point } from './collision-detector';
+import { CollisionDetector } from './collision-detector';
 import { Vector } from './flat/vector';
+import { Circle } from './circle';
 
 export class TimeStampMonitor {
   private readonly frameBarHeight = 20;
@@ -42,7 +43,13 @@ export class TimeStampMonitor {
     const currentMilliSecond = Math.trunc(now / 10);
 
     for (const [id, entity] of this.entities) {
-      if (!CollisionDetector.pointPoly(this.inputManager.currentPointerPosition, entity.materialisedHitbox)) {
+      // if (!entity.materialisedHitbox) continue;
+
+      // if (!CollisionDetector.pointPoly(this.inputManager.currentPointerPosition, entity.materialisedHitbox)) {
+      //   continue;
+      // }
+
+      if (!CollisionDetector.pointCircle(this.inputManager.currentPointerPosition, entity as unknown as Circle)) {
         continue;
       }
 
@@ -60,19 +67,19 @@ export class TimeStampMonitor {
 
       if (this.inputManager.getKeyState('Equal')) {
         entity.velocity.x += 0.5;
-        entity.velocity.y += 0.5;
+        // entity.velocity.y += 0.5;
       }
 
       if (this.inputManager.getKeyState('Minus')) {
         entity.velocity.x -= 0.5;
-        entity.velocity.y -= 0.5;
+        // entity.velocity.y -= 0.5;
 
         if (entity.velocity.x <= 0) {
           entity.velocity.x = 0;
         }
 
         if (entity.velocity.y <= 0) {
-          entity.velocity.y = 0;
+          // entity.velocity.y = 0;
         }
       }
     }

@@ -1,4 +1,4 @@
-import { Point } from '../collision-detector';
+import { Point } from './point';
 
 export class Vector extends Point {
 

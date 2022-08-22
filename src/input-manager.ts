@@ -1,14 +1,14 @@
-import { Point } from './collision-detector';
-
+import { Point } from './flat/point';
 export class InputManager {
   #pointerDown = false;
   #currentPointerPosition = new Point(0, 0);
   #keyboardStates = new Map<string, boolean>();
 
   constructor() {
-    window.addEventListener('pointerdown', this.onPointerDown.bind(this));
-    window.addEventListener('pointerup', this.onPointerUp.bind(this));
-    window.addEventListener('pointermove', this.onPointerMove.bind(this));
+    const canvas = document.getElementById('canvas')!;
+    canvas.addEventListener('pointerdown', this.onPointerDown.bind(this));
+    canvas.addEventListener('pointerup', this.onPointerUp.bind(this));
+    canvas.addEventListener('pointermove', this.onPointerMove.bind(this));
     window.addEventListener('keydown', this.onKeyDown.bind(this));
     window.addEventListener('keyup', this.onKeyUp.bind(this));
   }

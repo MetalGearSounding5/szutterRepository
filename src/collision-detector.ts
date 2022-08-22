@@ -1,10 +1,9 @@
 /* Some functions and code modified version from http://www.jeffreythompson.org/collision-detection */
 
 import { Vector } from './flat/vector';
-
-export class Point {
-  constructor(public x: number, public y: number) { }
-}
+import { Point } from './flat/point';
+import { Circle } from './circle';
+import { dot } from './flat/vector-math';
 
 export class Rect {
   constructor(public readonly topLeft: Point, public readonly size: Vector) { }
@@ -12,10 +11,6 @@ export class Rect {
 
 export class Line {
   constructor(public readonly first: Point, public readonly second: Point) { }
-}
-
-export class Circle {
-  constructor(public readonly center: Point, public readonly radius: number) { }
 }
 
 export class Ellipse {
@@ -40,23 +35,23 @@ export class CollisionDetector {
 
   public static rectCircle(first: Rect, second: Circle): boolean {
     const { topLeft: { x: rx, y: ry }, size: { x: rw, y: rh }} = first;
-    const { center: { x: cx, y: cy }, radius: cr } = second;
+    const { position: { x: cx, y: cy }, radius: cr } = second;
 
 
     const closestEdgeX = cx < rx ? rx : rx + rw;
     const closestEdgeY = cy < ry ? ry : ry + rh;
 
-    const distance = this.distanceBetweenPoints(second.center, { x: closestEdgeX, y: closestEdgeY });
+    const distance = this.distanceBetweenPoints(second.position, { x: closestEdgeX, y: closestEdgeY });
 
     return distance <= second.radius;
   }
 
   public static circleCircle(first: Circle, second: Circle): boolean {
-    return this.distanceBetweenPoints(first.center, second.center) <= first.radius + second.radius;
+    return this.distanceBetweenPoints(first.position, second.position) <= first.radius + second.radius;
   }
 
   public static pointCircle(first: Point, second: Circle): boolean {
-    return this.distanceBetweenPoints(first, second.center) <= second.radius;
+    return this.distanceBetweenPoints(first, second.position) <= second.radius;
   }
 
   public static pointEllipse(first: Point, second: Ellipse): boolean {
@@ -75,12 +70,67 @@ export class CollisionDetector {
     );
   }
 
-  public static pointLine(): boolean {
-    return true; // FIXME: TODO: Implement.
+  /**
+   *
+   * @param point
+   * @param line
+   * @param buffer since floats are so minutely accurate, add a little buffer zone that will give collision, higher === less precision
+   */
+  public static pointLine(point: Point, line: Readonly<Line>, buffer = 0.1): boolean {
+    const d1 = this.distanceBetweenPoints(point, line.first);
+    const d2 = this.distanceBetweenPoints(point, line.second);
+
+    // get the length of the line
+    const lineLen = this.distanceBetweenPoints(line.first, line.second);
+
+
+    // If the two distances are equal to the line's length, the point is on the line!
+    // Note we use the buffer here to give a range, rather than one # 👍
+    return d1 + d2 >= lineLen - buffer && d1 + d2 <= lineLen + buffer;
   }
 
-  public static lineCircle(): boolean {
-    return true; // FIXME: TODO: Implement.
+  public static lineCircle(line: Readonly<Line>, circle: Readonly<Circle>, callback?: (distance: number) => void): boolean {
+    // If line begins or ends inside circle
+    // if (this.pointCircle(line.first, circle)) {
+    //   !!callback && callback(this.distanceBetweenPoints(line.first, circle.position));
+    //   return true;
+    // }
+    //
+    // if (this.pointCircle(line.second, circle)) {
+    //   !!callback && callback(this.distanceBetweenPoints(line.second, circle.position));
+    //   return true;
+    // }
+
+    // Get length of the line
+    const len = this.distanceBetweenPoints(line.first, line.second);
+
+    // Get dot product of the line and circle
+    const vec1 = new Vector(circle.position.x - line.first.x, circle.position.y - line.first.y);
+    const vec2 = new Vector(line.second.x - line.first.x, line.second.y - line.first.y);
+    const dotProduct = dot(vec1, vec2) / Math.pow(len, 2);
+
+    // Find the closest point on the line
+    const closest = new Point(
+      line.first.x + (dotProduct * (line.second.x - line.first.x)),
+      line.first.y + (dotProduct * (line.second.y - line.first.y))
+    );
+
+    // Is this point actually on the line segment?
+    // If so keep going, but if not, return false
+    const onSegment = this.pointLine(closest, line);
+    if (!onSegment) return false;
+
+    // Get distance to the closest point
+    const distance = this.distanceBetweenPoints(closest, circle.position);
+    const collide = distance <= circle.radius;
+
+    if (!collide) {
+      return false;
+    }
+
+    !!callback && callback(Math.abs(distance - circle.radius));
+
+    return true;
   }
 
   public static lineLine<T extends Point | boolean>(first: Line, second: Line, calculateIntersection = false): T {
@@ -181,7 +231,7 @@ export class CollisionDetector {
     return true; // FIXME: TODO: Implement.
   }
 
-  private static distanceBetweenPoints(first: Point, second: Point): number {
+  public static distanceBetweenPoints(first: Point, second: Point): number {
     return Math.sqrt(Math.pow(first.x - second.x, 2) + Math.pow(first.y - second.y, 2));
   }
 }

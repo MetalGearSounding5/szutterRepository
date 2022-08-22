@@ -88,11 +88,11 @@ export class Engine {
 
     // movement
     for (const entity of materializedEntities) {
-      if (entity.velocity.x > VELOCITY_CAP) {
+      if (entity.velocity.x > VELOCITY_CAP || Number.isNaN(entity.velocity.x)) {
         entity.velocity.x = VELOCITY_CAP;
       }
 
-      if (entity.velocity.y > VELOCITY_CAP) {
+      if (entity.velocity.y > VELOCITY_CAP || Number.isNaN(entity.velocity.y)) {
         entity.velocity.y = VELOCITY_CAP;
       }
 

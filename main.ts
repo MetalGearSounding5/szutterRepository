@@ -2,7 +2,6 @@ import { Engine } from './src/engine';
 import { prepareContext } from './src/prepare-context';
 import { calculateDesiredFramesPerSecond } from './src/get-refresh-rate';
 import { webgpuTest } from './src/webgpu-test';
-import { Point } from './src/collision-detector';
 import { ViteHotContext } from 'vite/types/hot';
 
 export type TimeStamp = DOMHighResTimeStamp;

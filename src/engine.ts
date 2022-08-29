@@ -10,6 +10,7 @@ import { InputManager } from './input-manager';
 import { Circle } from './circle';
 import { Vector } from './flat/vector';
 import { Point } from './flat/point';
+import { dot } from './flat/vector-math';
 
 export class Engine {
   protected readonly entities = new Map<string, Entity>();
@@ -20,17 +21,17 @@ export class Engine {
   constructor(private readonly context: CanvasRenderingContext2D) {
     // this.entities.set('enemy-ship-0', new EnemyShip(new Point(context.canvas.width / 2, context.canvas.height / 2)));
     this.entitiesMock();
-    this.entities.set('ball-0', new Circle(
-      new Point(context.canvas.width / 2 - 100, context.canvas.height / 2),
-      new Vector(-10, 0),
-      100
-    ) as unknown as Entity);
+    // this.entities.set('ball-0', new Circle(
+    //   new Point(context.canvas.width / 2 - 100, context.canvas.height / 2),
+    //   new Vector(-50, 0),
+    //   100
+    // ) as unknown as Entity);
 
-    this.entities.set('ball-1', new Circle(
-      new Point(context.canvas.width / 2 + 100, context.canvas.height / 2),
-      new Vector(10, 0),
-      10
-    ) as unknown as Entity);
+    // this.entities.set('ball-1', new Circle(
+    //   new Point(context.canvas.width / 2 + 100, context.canvas.height / 2),
+    //   new Vector(50, 0),
+    //   10
+    // ) as unknown as Entity);
     import.meta.hot && this.handleHmr();
     this.loop();
   }
@@ -41,19 +42,21 @@ export class Engine {
     for (let i = 0; i < 15; i++) {
       this.entities.set(`circle-${i}`, new Circle(
         new Point(rnd(50, window.innerWidth - 50), rnd(50, window.innerHeight - 50)),
-        new Vector(rnd(0, 5), rnd(0, 5)),
-        rnd(5, 80)
+        new Vector(rnd(0, 100), rnd(0, 100)),
+        rnd(5, 100)
       ) as unknown as Entity);
     }
   }
 
   private update(now: TimeStamp, diff: TimeStamp): void {
     window.debugMode && this.monitor.update(now, diff);
+    const dt = diff / 1000;
+    console.log(dt);
     const materializedEntities = Array.from(this.entities.values()) as unknown as Circle[];
 
     // move entity
     for (const entity of materializedEntities) {
-      entity.move(diff);
+      entity.move(dt);
     }
 
     // check boundaries collisions
@@ -104,15 +107,16 @@ export class Engine {
         }
 
         const normal = Vector.normalize(new Vector(c2.position.x - c1.position.x, c2.position.y - c1.position.y));
-        const depth = c1.radius + c2.radius - CollisionDetector.distanceBetweenPoints(c1.position, c2.position);
-
-        const total = c1.radius + c2.radius;
-        const prop1 = c1.radius / total;
-        const prop2 = c2.radius / total;
+        const relativeVelocity = c1.velocity.add(c2.velocity.reverse());
+        const speed = dot(relativeVelocity, normal);
+        if (speed < 0) {
+          break;
+        }
+        const impulse = 2 * speed / (c1.mass + c2.mass);
 
         // update velocity
-        c1.velocity = c1.velocity.add(normal.multiply(-depth / 2).multiply(prop2));
-        c2.velocity = c2.velocity.add(normal.multiply(depth / 2).multiply(prop1));
+        c1.velocity = normal.multiply(impulse * c2.mass).reverse();
+        c2.velocity = normal.multiply(impulse * c1.mass);
       }
     }
 

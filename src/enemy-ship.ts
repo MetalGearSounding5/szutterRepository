@@ -1,7 +1,8 @@
 import { TimeStamp } from '../main';
-import { Point, Poly } from './collision-detector';
+import { Poly } from './collision-detector';
 import { Entity } from './entity';
 import { Vector } from './flat/vector';
+import { Point } from './flat/point';
 
 export class EnemyShip extends Entity {
   public readonly relativeHitbox: Poly = [];

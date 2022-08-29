@@ -11,8 +11,6 @@ import { Circle } from './circle';
 import { Vector } from './flat/vector';
 import { Point } from './flat/point';
 
-const VELOCITY_CAP = window.innerWidth / 100;
-
 export class Engine {
   protected readonly entities = new Map<string, Entity>();
   public requestAnimationFrameId?: number;
@@ -40,7 +38,7 @@ export class Engine {
   private entitiesMock(): void {
     const rnd = (min: number, max: number) => Math.random() * (max - min) + min;
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
       this.entities.set(`circle-${i}`, new Circle(
         new Point(rnd(50, window.innerWidth - 50), rnd(50, window.innerHeight - 50)),
         new Vector(rnd(0, 5), rnd(0, 5)),
@@ -51,13 +49,47 @@ export class Engine {
 
   private update(now: TimeStamp, diff: TimeStamp): void {
     window.debugMode && this.monitor.update(now, diff);
+    const materializedEntities = Array.from(this.entities.values()) as unknown as Circle[];
 
+    // move entity
+    for (const entity of materializedEntities) {
+      entity.move(diff);
+    }
+
+    // check boundaries collisions
     const leftUpperCorner = new Point(0, 0);
     const leftLowerCorner = new Point(0, this.context.canvas.height);
     const rightUpperCorner = new Point(this.context.canvas.width, 0);
     const rightLowerCorner = new Point(this.context.canvas.width, this.context.canvas.height);
-    const materializedEntities = Array.from(this.entities.values()) as unknown as Circle[];
 
+    const leftBoundary = new Line(leftUpperCorner, leftLowerCorner);
+    const downBoundary = new Line(leftLowerCorner, rightLowerCorner);
+    const rightBoundary = new Line(rightLowerCorner, rightUpperCorner);
+    const upBoundary = new Line(rightUpperCorner, leftUpperCorner);
+
+    for (const entity of materializedEntities) {
+      if (CollisionDetector.lineCircle(leftBoundary, entity)) { // left
+        entity.position.x = leftBoundary.first.x + entity.radius;
+        entity.velocity.x *= -1;
+      }
+
+      if (CollisionDetector.lineCircle(downBoundary, entity)) { // down
+        entity.position.y = downBoundary.first.y - entity.radius;
+        entity.velocity.y *= -1;
+      }
+
+      if (CollisionDetector.lineCircle(rightBoundary, entity)) { // right
+        entity.position.x = rightBoundary.first.x - entity.radius;
+        entity.velocity.x *= -1;
+      }
+
+      if (CollisionDetector.lineCircle(upBoundary, entity)) { // up
+        entity.position.y = upBoundary.first.y + entity.radius;
+        entity.velocity.y *= -1;
+      }
+    }
+
+    // check pair-wise entity collisions
     for (let i = 0; i < materializedEntities.length - 1; i++) {
       const first = materializedEntities[i];
 
@@ -78,65 +110,16 @@ export class Engine {
         const prop1 = c1.radius / total;
         const prop2 = c2.radius / total;
 
+        // update velocity
         c1.velocity = c1.velocity.add(normal.multiply(-depth / 2).multiply(prop2));
         c2.velocity = c2.velocity.add(normal.multiply(depth / 2).multiply(prop1));
       }
     }
 
-    const cW = this.context.canvas.width;
-    const cH = this.context.canvas.height;
-
-    // movement
+    // normalize velocity
     for (const entity of materializedEntities) {
-      if (entity.velocity.x > VELOCITY_CAP || Number.isNaN(entity.velocity.x)) {
-        entity.velocity.x = VELOCITY_CAP;
-      }
-
-      if (entity.velocity.y > VELOCITY_CAP || Number.isNaN(entity.velocity.y)) {
-        entity.velocity.y = VELOCITY_CAP;
-      }
-
-      entity.position.x += entity.velocity.x;
-      entity.position.y += entity.velocity.y;
-
-      CollisionDetector.lineCircle(new Line(leftUpperCorner, leftLowerCorner), entity, distance => { // Left
-        entity.position.x += distance;
-        entity.velocity.x *= -1;
-      });
-
-      if (entity.position.x - entity.radius < 0) {
-        entity.position.x = entity.radius;
-      }
-
-      CollisionDetector.lineCircle(new Line(leftLowerCorner, rightLowerCorner), entity, distance => { // Bottom
-        entity.position.y -= distance;
-        entity.velocity.y *= -1;
-      });
-
-      if (entity.position.y + entity.radius > cH) {
-        entity.position.y = cH - entity.radius;
-      }
-
-      CollisionDetector.lineCircle(new Line(rightLowerCorner, rightUpperCorner), entity, distance => { // Right
-        entity.position.x -= distance;
-        entity.velocity.x *= -1;
-      });
-
-      if (entity.position.x + entity.radius > cW) {
-        entity.position.x = cW - entity.radius;
-      }
-
-
-      CollisionDetector.lineCircle(new Line(rightUpperCorner, leftUpperCorner), entity, distance => { // Top
-        entity.position.y += distance;
-        entity.velocity.y *= -1;
-      });
-
-      if (entity.position.y - entity.radius < 0) {
-        entity.position.y = entity.radius;
-      }
+      entity.normalizeVelocity();
     }
-
 
     for (const entity of this.entities.values()) {
       entity.update?.(now, diff);

@@ -1,9 +1,10 @@
 import { TimeStamp } from '../main';
 import { InputManager } from './input-manager';
 import { Entity } from './entity';
-import { CollisionDetector } from './collision-detector';
+import { CollisionDetector, Rect } from './collision-detector';
 import { Vector } from './flat/vector';
 import { Circle } from './circle';
+import { Point } from './flat/point';
 
 export class TimeStampMonitor {
   private readonly frameBarHeight = 20;
@@ -11,6 +12,7 @@ export class TimeStampMonitor {
   private readonly frameGraphMargin = 5;
   private buffer: TimeStamp[] = [];
   private entitiesUnderPointer: Map<string, Entity> = new Map<string, Entity>();
+  private countOfEntitiesOnScreen: number = 0;
 
   public constructor(
     private readonly inputManager: InputManager,
@@ -34,6 +36,7 @@ export class TimeStampMonitor {
     }
 
     this.entitiesUnderPointer.clear();
+    this.countOfEntitiesOnScreen = 0;
 
     for (let entity of this.entities.values()) {
       entity.debug = false;
@@ -48,7 +51,9 @@ export class TimeStampMonitor {
       // if (!CollisionDetector.pointPoly(this.inputManager.currentPointerPosition, entity.materialisedHitbox)) {
       //   continue;
       // }
-
+      if (CollisionDetector.pointRect(entity.position, new Rect(new Point(0,0), new Vector(window.innerWidth, window.innerHeight)))) {
+        this.countOfEntitiesOnScreen++;
+      }
 
       if (!CollisionDetector.pointCircle(this.inputManager.currentPointerPosition, entity as unknown as Circle)) {
         continue;
@@ -118,11 +123,14 @@ export class TimeStampMonitor {
       this.frameGraphMargin + this.frameBarHeight + this.frameGraphMargin + fontSize / 2
     );
 
-    context.fillText(`Entities under pointer (${this.entitiesUnderPointer.size}):`,
-      this.frameGraphMargin,
+    context.fillText(`Entities on the screen: ${this.countOfEntitiesOnScreen}`, this.frameGraphMargin,
       this.frameGraphMargin + this.frameBarHeight + fontSize * 2);
 
-    let i = 3;
+    context.fillText(`Entities under pointer (${this.entitiesUnderPointer.size}):`,
+      this.frameGraphMargin,
+      this.frameGraphMargin + this.frameBarHeight + fontSize * 3);
+
+    let i = 4;
     for (const [id, entity] of this.entitiesUnderPointer) {
 
       context.fillText(`#${id}`,
